@@ -18,6 +18,16 @@ function writeLibrary(lib) {
 }
 
 const app = express();
+
+/** Permite abrir index.html via file:// e falar com esta API (uso local). */
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static(PUBLIC));
 

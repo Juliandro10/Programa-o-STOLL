@@ -18,6 +18,10 @@ npm start
 
 Interface: `http://localhost:3777`
 
+**Importante:** não abra `public/index.html` com duplo clique no Explorador (`file://`). Sem o servidor Node, nada grava em `library.json`. Sempre `npm start` e use o endereço acima.
+
+Se abrir o HTML em ficheiro por engano, a página tenta falar com `http://127.0.0.1:3777` — o servidor tem de estar a correr.
+
 ## Import web
 
 ```powershell
