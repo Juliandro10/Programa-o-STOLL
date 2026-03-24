@@ -83,6 +83,11 @@ node import-web.mjs --url "https://en.wikipedia.org/wiki/Yarn_count" --label "ex
 > A extração automática de densidade a partir da internet é limitada por direitos de uso e
 > qualidade das fontes; o fluxo seguro é: importar → você valida → cria amostra manualmente na UI.
 
+### Mockup de símbolos (grelha = cálculo)
+
+Na calculadora da mesma UI, após obter **agulhas** e **carreiras**, use **Abrir mockup de símbolos**.  
+O servidor serve o HTML da raiz do repo em `http://localhost:3777/repo/stoll-vista-simbolos-m1plus.html?...`.
+
 ## Opcional: versao Python
 
 Existe tambem o script `scripts/cost_guard.py`, caso voce instale Python no futuro.

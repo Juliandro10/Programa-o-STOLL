@@ -179,6 +179,103 @@
     color: #c5cdd8;
   }
   .ref-wrap .subhead:first-of-type { margin-top: 0; }
+  .composer {
+    margin-top: 14px;
+    border: 1px solid #3d4450;
+    background: #232831;
+    border-radius: 10px;
+    padding: 10px;
+    max-width: min(1100px, 100%);
+  }
+  .composer h2 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+  }
+  .composer .help {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin: 0 0 8px;
+  }
+  .picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .pick-btn {
+    border: 1px solid #4a5260;
+    background: #2c3340;
+    color: #d5dbe5;
+    border-radius: 6px;
+    height: 28px;
+    min-width: 56px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .pick-btn.active {
+    border-color: #7cb3ff;
+    box-shadow: inset 0 0 0 1px #7cb3ff;
+  }
+  .compose-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .compose-actions button {
+    border: 1px solid #4a5260;
+    background: #2c3340;
+    color: #d5dbe5;
+    border-radius: 6px;
+    height: 28px;
+    padding: 0 10px;
+    cursor: pointer;
+  }
+  .compose-wrap {
+    overflow: auto;
+    border: 1px solid #3d4450;
+    border-radius: 8px;
+    background: #1f242d;
+    padding: 6px;
+    width: fit-content;
+    max-width: 100%;
+  }
+  table.compose-grid {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+  table.compose-grid th,
+  table.compose-grid td {
+    border: 1px solid #4a5260;
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    padding: 0;
+  }
+  table.compose-grid th {
+    color: var(--muted);
+    font-size: 10px;
+    background: #262c37;
+  }
+  table.compose-grid td {
+    background: #4d5460;
+    cursor: pointer;
+  }
+  .recipe-output {
+    width: 100%;
+    margin-top: 8px;
+    background: #12161d;
+    color: #d5dbe5;
+    border: 1px solid #3d4450;
+    border-radius: 6px;
+    padding: 8px;
+    font: 12px/1.4 Consolas, monospace;
+    resize: vertical;
+    min-height: 100px;
+  }
 </style>
 
 <h1>Vista de símbolos — mesma linguagem da paleta M1plus</h1>
@@ -207,6 +304,23 @@
 </div>
 
 <div class="wrap" id="board"></div>
+<div class="composer">
+  <h2>Como fazer o ponto (símbolos da paleta)</h2>
+  <p class="help">
+    Escolha um símbolo e clique na grelha para desenhar. Saída em <code>rows[]</code> para copiar direto no script.
+    Tamanho da grelha pode vir da calculadora (URL):
+    <code>?composeCols=agulhas&amp;composeRows=carreiras</code> e opcionalmente
+    <code>composeStartNeedle=150</code> para a régua.
+  </p>
+  <p id="composeFromCalc" class="help" style="display: none; color: #7cb3ff"></p>
+  <div class="picker" id="picker"></div>
+  <div class="compose-actions">
+    <button type="button" id="loadSampleBtn">Carregar amostra atual</button>
+    <button type="button" id="clearGridBtn">Limpar grelha</button>
+  </div>
+  <div class="compose-wrap" id="composeWrap"></div>
+  <textarea id="recipeOutput" class="recipe-output" readonly></textarea>
+</div>
 
 <script>
 /** Primeira agulha da grelha (como régua verde no M1+) */
@@ -215,7 +329,7 @@ const startNeedle = 150;
 /**
  * Cada string = uma carreira, esquerda → direita; primeira string = topo da peça.
  * Mapa apenas para este HTML (não confundir com códigos do ficheiro .pat / .knit do M1plus):
- *   K malha | T tuck | M falha/pontos | < transf. seta ↑ cinza | > transf. seta ↓ cinza | . célula neutra
+ *   K/T/M/</>/. + símbolos técnicos adicionais (W,G,R,U,D,L,S)
  * Cores de célula: função cellBg() — ajuste aos seus ficheiros M1+.
  * Pode acrescentar aliases em STITCH_MAP abaixo.
  */
@@ -249,6 +363,16 @@ const feederByRow = rows.map(() => [1, 2, 5, 6]);
 
 const RAPPORT_SPLIT_AFTER = 8;
 
+const urlParams = new URLSearchParams(location.search);
+function clampInt(n, min, max, fallback) {
+  const v = parseInt(String(n), 10);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(min, Math.min(max, v));
+}
+const COMPOSE_COLS = clampInt(urlParams.get("composeCols"), 1, 500, 16);
+const COMPOSE_ROWS = clampInt(urlParams.get("composeRows"), 1, 500, 12);
+const COMPOSE_START_NEEDLE = clampInt(urlParams.get("composeStartNeedle"), 1, 5000, 1);
+
 /** Opcional: outras teclas → símbolo base (edite ao ritmo da sua folha de apontamentos). */
 const STITCH_MAP = {
   /* exemplos: */
@@ -270,6 +394,13 @@ function cellBg(ch) {
     M: "#744a74",
     "<": "#145454",
     ">": "#703038",
+    W: "#3f464f",
+    G: "#005c4b",
+    R: "#7d1e1e",
+    U: "#173a84",
+    D: "#0b1b63",
+    L: "#585858",
+    S: "#6b1f88",
   };
   return m[ch] || m["."];
 }
@@ -315,6 +446,49 @@ function symEmpty() {
     <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="0.9" opacity="0.45"/>
   </svg>`;
 }
+function symWhiteLoop() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="loop branco">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="#c4ccd7" stroke-width="1.1"/>
+    <path d="M6.2 11 Q11 16.8 15.8 11" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M8.2 8.4 Q11 5.4 13.8 8.4" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity="0.95"/>
+  </svg>`;
+}
+function symArrowGreenDashed() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="seta verde tracejada cima">
+    <line x1="11" y1="16.5" x2="11" y2="6.2" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="2.4 2" stroke-linecap="round"/>
+    <polygon points="11,4.2 8,8.5 14,8.5" fill="#22c55e"/>
+  </svg>`;
+}
+function symArrowRedDashed() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="seta vermelha tracejada baixo">
+    <line x1="11" y1="5.5" x2="11" y2="15.8" stroke="#ef4444" stroke-width="2" stroke-dasharray="2.4 2" stroke-linecap="round"/>
+    <polygon points="11,17.8 8,13.5 14,13.5" fill="#ef4444"/>
+  </svg>`;
+}
+function symArrowUpSolid() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="seta cheia cima">
+    <line x1="11" y1="16.5" x2="11" y2="6.3" stroke="#d2dae5" stroke-width="3.1" stroke-linecap="round"/>
+    <polygon points="11,4.2 7.5,9 14.5,9" fill="#d2dae5"/>
+  </svg>`;
+}
+function symArrowDownSolid() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="seta cheia baixo">
+    <line x1="11" y1="5.5" x2="11" y2="15.7" stroke="#d2dae5" stroke-width="3.1" stroke-linecap="round"/>
+    <polygon points="11,17.8 7.5,13 14.5,13" fill="#d2dae5"/>
+  </svg>`;
+}
+function symRackingL() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="movimento L">
+    <path d="M6 6 H16 V8 H8 V16 H6 Z" fill="#bcc4d0"/>
+  </svg>`;
+}
+function symSplitPath() {
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="trajeto split">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.1" opacity="0.9"/>
+    <path d="M5 11 Q8 6 11 11 Q14 16 17 11" fill="none" stroke="${STROKE_YARN}" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="11" cy="11" r="1.2" fill="#f9e0b8"/>
+  </svg>`;
+}
 
 function cellSvg(ch0) {
   const ch = STITCH_MAP[ch0] || ch0;
@@ -324,9 +498,83 @@ function cellSvg(ch0) {
     case "M": return symMiss();
     case "<": return symTrLeft();
     case ">": return symTrRight();
+    case "W": return symWhiteLoop();
+    case "G": return symArrowGreenDashed();
+    case "R": return symArrowRedDashed();
+    case "U": return symArrowUpSolid();
+    case "D": return symArrowDownSolid();
+    case "L": return symRackingL();
+    case "S": return symSplitPath();
     case ".": return symEmpty();
     default: return symEmpty();
   }
+}
+
+const symbolOptions = [
+  ["K", "Malha"],
+  ["T", "Tuck"],
+  ["M", "Pontos"],
+  ["<", "Transf ↑"],
+  [">", "Transf ↓"],
+  ["W", "Loop branco"],
+  ["G", "Seta verde .."],
+  ["R", "Seta vermelha .."],
+  ["U", "Seta cheia ↑"],
+  ["D", "Seta cheia ↓"],
+  ["L", "Movimento L"],
+  ["S", "Split/trajeto"],
+  [".", "Neutro"],
+];
+
+let activeSymbol = "K";
+let composeRows = Array.from({ length: COMPOSE_ROWS }, () => Array(COMPOSE_COLS).fill("."));
+
+function buildPicker() {
+  const el = document.getElementById("picker");
+  el.innerHTML = symbolOptions.map(([code, label]) => `
+    <button class="pick-btn${code === activeSymbol ? " active" : ""}" data-symbol="${code}" type="button">
+      ${cellSvg(code)}<span>${label}</span>
+    </button>
+  `).join("");
+  el.querySelectorAll(".pick-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeSymbol = btn.dataset.symbol || "K";
+      buildPicker();
+    });
+  });
+}
+
+function refreshRecipeOutput() {
+  const lines = composeRows.map((line) => `"${line.join("")}"`);
+  document.getElementById("recipeOutput").value = `const rows = [\n  ${lines.join(",\n  ")}\n];`;
+}
+
+function renderComposeGrid() {
+  let h = '<table class="compose-grid"><thead><tr><th></th>';
+  for (let c = 0; c < COMPOSE_COLS; c++) h += `<th>${COMPOSE_START_NEEDLE + c}</th>`;
+  h += '</tr></thead><tbody>';
+  const rw = Math.max(2, String(COMPOSE_ROWS).length);
+  for (let r = 0; r < COMPOSE_ROWS; r++) {
+    h += `<tr><th>R${String(COMPOSE_ROWS - r).padStart(rw, "0")}</th>`;
+    for (let c = 0; c < COMPOSE_COLS; c++) {
+      const ch = composeRows[r][c];
+      h += `<td data-r="${r}" data-c="${c}" style="background-color:${cellBg(ch)}">${cellSvg(ch)}</td>`;
+    }
+    h += "</tr>";
+  }
+  h += "</tbody></table>";
+  const wrap = document.getElementById("composeWrap");
+  wrap.innerHTML = h;
+  wrap.querySelectorAll("td[data-r]").forEach((td) => {
+    td.addEventListener("click", () => {
+      const r = Number(td.dataset.r);
+      const c = Number(td.dataset.c);
+      composeRows[r][c] = activeSymbol;
+      td.style.backgroundColor = cellBg(activeSymbol);
+      td.innerHTML = cellSvg(activeSymbol);
+      refreshRecipeOutput();
+    });
+  });
 }
 
 function buildPalette() {
@@ -345,6 +593,10 @@ function buildLegend() {
     [symTuck(), "Tuck"],
     [symMiss(), "Pontos / função"],
     [symTrLeft() + symTrRight(), "Transf. &lt; ↑ / &gt; ↓ (cinza)"],
+    [symWhiteLoop(), "Loop branco"],
+    [symArrowGreenDashed() + symArrowRedDashed(), "Setas tracejadas"],
+    [symArrowUpSolid() + symArrowDownSolid(), "Setas cheias"],
+    [symRackingL(), "Racking L"],
   ].map(([svg, t]) => `<span>${svg}${t}</span>`).join("");
 }
 
@@ -394,7 +646,35 @@ function buildBoard() {
     <div class="main"><table class="sym" role="grid"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
+if (urlParams.get("composeCols") || urlParams.get("composeRows")) {
+  const el = document.getElementById("composeFromCalc");
+  el.style.display = "block";
+  el.textContent = `Grelha ativa: ${COMPOSE_COLS} agulhas (largura) × ${COMPOSE_ROWS} carreiras (altura). Primeira agulha: ${COMPOSE_START_NEEDLE}.`;
+}
+
 buildPalette();
 buildLegend();
 buildBoard();
+buildPicker();
+renderComposeGrid();
+refreshRecipeOutput();
+
+document.getElementById("clearGridBtn").addEventListener("click", () => {
+  composeRows = Array.from({ length: COMPOSE_ROWS }, () => Array(COMPOSE_COLS).fill("."));
+  renderComposeGrid();
+  refreshRecipeOutput();
+});
+
+document.getElementById("loadSampleBtn").addEventListener("click", () => {
+  composeRows = rows.map((line) => {
+    const src = line.split("");
+    const row = Array(COMPOSE_COLS).fill(".");
+    for (let i = 0; i < Math.min(src.length, COMPOSE_COLS); i++) row[i] = src[i];
+    return row;
+  });
+  while (composeRows.length < COMPOSE_ROWS) composeRows.push(Array(COMPOSE_COLS).fill("."));
+  composeRows = composeRows.slice(0, COMPOSE_ROWS);
+  renderComposeGrid();
+  refreshRecipeOutput();
+});
 </script>

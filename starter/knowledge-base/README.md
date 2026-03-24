@@ -22,6 +22,19 @@ Interface: `http://localhost:3777`
 
 Se abrir o HTML em ficheiro por engano, a página tenta falar com `http://127.0.0.1:3777` — o servidor tem de estar a correr.
 
+## Ligação à calculadora → mockup de símbolos
+
+Com `npm start`, o servidor expõe também a raiz do repositório em **`/repo`**.  
+Depois de calcular agulhas e carreiras, use **Abrir mockup de símbolos** na UI (ou copie o link).
+
+O ficheiro `stoll-vista-simbolos-m1plus.html` abre com grelha de composição nas dimensões calculadas (máx. 500×500 por desempenho).
+
+Parâmetros úteis na URL do mockup:
+
+- `composeCols` — largura em agulhas  
+- `composeRows` — altura em carreiras  
+- `composeStartNeedle` — primeira agulha na régua (ex.: 150)
+
 ## Import web
 
 ```powershell

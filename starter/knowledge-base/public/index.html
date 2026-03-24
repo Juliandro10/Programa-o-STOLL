@@ -282,6 +282,14 @@
       </div>
     </div>
     <button type="button" id="btn_calc">Calcular agulhas + carreiras</button>
+    <div class="compose-actions" style="margin-top:10px">
+      <button type="button" id="btn_open_mockup" disabled>Abrir mockup de símbolos (grelha = agulhas × carreiras)</button>
+      <button type="button" class="secondary" id="btn_copy_mockup_link" disabled>Copiar link do mockup</button>
+    </div>
+    <p class="muted" style="margin:8px 0 0;font-size:0.78rem">
+      Abre <code>/repo/stoll-vista-simbolos-m1plus.html</code> no mesmo servidor (precisa de <code>npm start</code>).
+      Grelhas muito grandes (&gt;300) podem ficar lentas no browser.
+    </p>
     <pre id="c_out" style="margin-top:10px;white-space:pre-wrap;background:#10131a;padding:10px;border-radius:6px"></pre>
   </section>
 
@@ -469,6 +477,16 @@
       .replace(/"/g, "&quot;");
   }
 
+  let lastCalc = null;
+
+  function mockupUrl() {
+    if (!lastCalc || lastCalc.needles == null || lastCalc.courses == null) return "";
+    const cols = Math.min(500, Math.max(1, lastCalc.needles));
+    const rows = Math.min(500, Math.max(1, lastCalc.courses));
+    const origin = location.origin;
+    return `${origin}/repo/stoll-vista-simbolos-m1plus.html?composeCols=${cols}&composeRows=${rows}&composeStartNeedle=150`;
+  }
+
   async function refresh() {
     const lib = await api("/api/library");
     fillSelects(lib);
@@ -476,10 +494,10 @@
     return lib;
   }
 
-  async function safe(fn) {
+  async function safe(fn, opts) {
     try {
       await fn();
-      showStatus("Guardado com sucesso.", "ok");
+      if (!opts || !opts.skipOk) showStatus("Guardado com sucesso.", "ok");
     } catch (e) {
       showStatus("Erro: " + String(e.message || e), "err");
       console.error(e);
@@ -554,18 +572,48 @@
     });
 
   document.getElementById("btn_calc").onclick = () =>
-    safe(async () => {
-      const out = await api("/api/calc-size", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          sampleId: document.getElementById("c_sample").value,
-          widthCm: document.getElementById("c_w").value,
-          heightCm: document.getElementById("c_h").value,
-        }),
-      });
-      document.getElementById("c_out").textContent = JSON.stringify(out, null, 2);
-    });
+    safe(
+      async () => {
+        const out = await api("/api/calc-size", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            sampleId: document.getElementById("c_sample").value,
+            widthCm: document.getElementById("c_w").value,
+            heightCm: document.getElementById("c_h").value,
+          }),
+        });
+        lastCalc = out;
+        document.getElementById("c_out").textContent = JSON.stringify(out, null, 2);
+        document.getElementById("btn_open_mockup").disabled = false;
+        document.getElementById("btn_copy_mockup_link").disabled = false;
+        showStatus("Cálculo pronto — pode abrir o mockup de símbolos.", "ok");
+      },
+      { skipOk: true },
+    );
+
+  document.getElementById("btn_open_mockup").onclick = () => {
+    const u = mockupUrl();
+    if (!u) {
+      showStatus("Calcule primeiro (amostra + medidas).", "err");
+      return;
+    }
+    window.open(u, "_blank", "noopener,noreferrer");
+  };
+
+  document.getElementById("btn_copy_mockup_link").onclick = async () => {
+    const u = mockupUrl();
+    if (!u) {
+      showStatus("Calcule primeiro.", "err");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(u);
+      showStatus("Link copiado para a área de transferência.", "ok");
+    } catch {
+      showStatus(u, "ok");
+    }
+  };
 
   refresh().catch((e) => {
     showStatus(

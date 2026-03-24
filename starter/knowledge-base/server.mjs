@@ -7,6 +7,8 @@ import crypto from "node:crypto";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LIB_PATH = path.join(__dirname, "library.json");
 const PUBLIC = path.join(__dirname, "public");
+/** Raiz do repo (Programa-o-STOLL) — para abrir stoll-vista-simbolos-m1plus.html a partir da UI local. */
+const REPO_ROOT = path.join(__dirname, "..", "..");
 const PORT = Number(process.env.PORT || 3777);
 
 function readLibrary() {
@@ -29,6 +31,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "2mb" }));
+app.use("/repo", express.static(REPO_ROOT, { index: false, dotfiles: "ignore" }));
 app.use(express.static(PUBLIC));
 
 app.get("/api/library", (req, res) => {
