@@ -139,15 +139,49 @@
   }
   table.sym td.rapport-edge { border-right: 3px solid #8fa4c4; }
   table.sym svg { display: block; margin: auto; }
+  .ref-wrap {
+    margin: 14px 0 18px;
+    padding: 12px;
+    background: #232831;
+    border: 1px solid #3d4450;
+    border-radius: 10px;
+    max-width: min(920px, 100%);
+  }
+  .ref-wrap h2 {
+    font-size: 0.95rem;
+    margin: 0 0 8px;
+    font-weight: 600;
+    border: none;
+    padding: 0;
+  }
+  .ref-wrap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: #d6d8dc;
+    border-radius: 6px;
+    border: 1px solid #555c6b;
+  }
+  .ref-wrap .cap {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
 </style>
 
-<h1>Vista de símbolos — glifos como no M1plus</h1>
+<h1>Vista de símbolos — mesma linguagem da paleta M1plus</h1>
 <p class="sub">
-  Ajustado ao ecrã real: <strong>malha = U com topo recto</strong> (amarelo cheio), <strong>tuck = traços</strong> sobre o ponto,
-  <strong>transferência = duas linhas (camas) + seta</strong>, como na barra de ferramentas / grelha do programa.
-  Os caracteres <code>K T M &lt; &gt; .</code> no script são só etiquetas para gerar o desenho — não são códigos internos do M1plus.
-  Ver letras em <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
+  Os desenhos na grelha seguem o <strong>print oficial da paleta</strong>: <em>linha horizontal = cama de agulhas</em>, <em>alça = malha</em>,
+  <em>traço ondulado = tuck</em>, <em>pontos = agulha sem acção</em>, <em>seta tracejada verde ↑ / vermelha ↓</em> com a malha = transferências
+  (como na 1.ª fila da paleta). Caracteres <code>K T M &lt; &gt; .</code> são só atalhos para estes desenhos no ficheiro HTML.
+  Letras soltas: <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
 </p>
+
+<div class="ref-wrap">
+  <h2>Paleta do programa (referência)</h2>
+  <img src="assets/m1plus-paleta-referencia.png" alt="Paleta de símbolos STOLL M1plus" width="640" height="360" loading="lazy" />
+  <p class="cap">Ficheiro incluído no repositório: <code>assets/m1plus-paleta-referencia.png</code> — o mesmo que enviou.</p>
+</div>
 
 <div class="top-bar">
   <div>
@@ -166,7 +200,8 @@ const startNeedle = 150;
 /**
  * Cada string = uma carreira, esquerda → direita; primeira string = topo da peça.
  * Mapa apenas para este HTML (não confundir com códigos do ficheiro .pat / .knit do M1plus):
- *   K malha | T tuck | M falha | < > transferência | . vazio
+ *   K malha estática | T tuck | M falha | < transf. seta verde ↑ | > transf. seta vermelha ↓ | . só linha cama
+ * Convenção das setas alinhada à 1.ª fila da paleta; se no seu fluxo for o inverso, troque os casos em cellSvg().
  * Pode acrescentar aliases em STITCH_MAP abaixo.
  */
 const rows = [
@@ -205,45 +240,52 @@ const STITCH_MAP = {
   // k: "K", m: "M", x: "T",
 };
 
+const VB = "0 0 22 22";
+const STROKE_BED = "#9aa3b2";
+const STROKE_LOOP = "#e8c930";
+const GREEN = "#35d399";
+const RED = "#ff5c5c";
+
 function symKnit() {
-  /* U com topo plano e fundo curvo — como na “Vista de símbolos” STOLL */
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="malha">
-    <path d="M4.8 5.3 H15.2 V11.8 Q10 15.2 4.8 11.8 Z"
-      fill="#e9c83a" stroke="#b8951a" stroke-width="0.45" stroke-linejoin="round"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="malha">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <path d="M6.5 11 Q11 17.2 15.5 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.85" stroke-linecap="round"/>
   </svg>`;
 }
 function symTuck() {
-  /* Traços horizontais por cima do laço — leitura tipo M1+ */
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="tuck">
-    <line x1="4" y1="5.5" x2="16" y2="5.5" stroke="#f5e6a2" stroke-width="2" stroke-linecap="round"/>
-    <line x1="4" y1="8.5" x2="16" y2="8.5" stroke="#dfc45c" stroke-width="1.35" stroke-linecap="round"/>
-    <path d="M5 14 Q10 11 15 14" fill="none" stroke="#c9a928" stroke-width="1.25" stroke-linecap="round" opacity="0.85"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="tuck">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <path d="M5.5 11 C6.5 7.5 8 7.5 9.2 11 C10.3 14 11.7 14 12.8 11 C14 7.5 15.5 7.5 16.5 11"
+      fill="none" stroke="${STROKE_LOOP}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 function symMiss() {
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="falha">
-    <rect x="5.5" y="6.5" width="9" height="8" rx="1" fill="none" stroke="#8b95a8" stroke-width="1.35" stroke-dasharray="2.4 2"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="falha / vazio">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <circle cx="11" cy="7.2" r="1.15" fill="#d6dde8"/>
+    <circle cx="11" cy="14.8" r="1.15" fill="#d6dde8"/>
   </svg>`;
 }
 function symTrLeft() {
-  /* Duas linhas (camas) + seta diagonal, como nos ícones STOLL */
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="transferência &lt;">
-    <line x1="3" y1="5.5" x2="17" y2="5.5" stroke="#5c6475" stroke-width="1.15"/>
-    <line x1="3" y1="14.5" x2="17" y2="14.5" stroke="#5c6475" stroke-width="1.15"/>
-    <line x1="12.5" y1="6" x2="6.5" y2="14" stroke="#5ee9a8" stroke-width="1.85" stroke-linecap="round"/>
-    <polygon points="6.5,14 8.1,12.3 8.9,14.8" fill="#5ee9a8"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência &lt; (verde tracejado ↑)">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <path d="M7 11 Q11 16.5 15 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="11" y1="15" x2="11" y2="7" stroke="${GREEN}" stroke-width="1.35" stroke-dasharray="2.6 2" stroke-linecap="round"/>
+    <polygon points="11,5.5 8.9,8.6 13.1,8.6" fill="${GREEN}"/>
   </svg>`;
 }
 function symTrRight() {
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="transferência &gt;">
-    <line x1="3" y1="5.5" x2="17" y2="5.5" stroke="#5c6475" stroke-width="1.15"/>
-    <line x1="3" y1="14.5" x2="17" y2="14.5" stroke="#5c6475" stroke-width="1.15"/>
-    <line x1="7.5" y1="6" x2="13.5" y2="14" stroke="#5ee9a8" stroke-width="1.85" stroke-linecap="round"/>
-    <polygon points="13.5,14 11.9,12.3 11.1,14.8" fill="#5ee9a8"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência &gt; (vermelho tracejado ↓)">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <path d="M7 11 Q11 16.5 15 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="11" y1="7" x2="11" y2="15" stroke="${RED}" stroke-width="1.35" stroke-dasharray="2.6 2" stroke-linecap="round"/>
+    <polygon points="11,16.5 8.9,13.4 13.1,13.4" fill="${RED}"/>
   </svg>`;
 }
 function symEmpty() {
-  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="."><circle cx="10" cy="10" r="1.2" fill="#5a6372" opacity=".5"/></svg>`;
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="só linha cama">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="0.85" opacity="0.5"/>
+  </svg>`;
 }
 
 function cellSvg(ch0) {
@@ -271,10 +313,10 @@ function buildPalette() {
 
 function buildLegend() {
   document.getElementById("legend").innerHTML = [
-    [symKnit(), "Malha"],
-    [symTuck(), "Tuck"],
-    [symMiss(), "Falha"],
-    [symTrLeft() + symTrRight(), "Transf. (camas + seta)"]
+    [symKnit(), "Malha (linha+alça)"],
+    [symTuck(), "Tuck (linha+onda)"],
+    [symMiss(), "Pontos (sem trabalho)"],
+    [symTrLeft() + symTrRight(), "&lt; verde ↑ / &gt; vermelho ↓"]
   ].map(([svg, t]) => `<span>${svg}${t}</span>`).join("");
 }
 
