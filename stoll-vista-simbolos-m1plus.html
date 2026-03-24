@@ -1,0 +1,301 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>M1plus — mockup Vista de símbolos</title>
+<style>
+  :root {
+    --bg: #2f3540;
+    --cell: #5c6470;
+    --cell-hi: #6f7784;
+    --grid: #4a5160;
+    --rail: #3d7c47;
+    --text: #e8eaef;
+    --muted: #9aa3b2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 13px/1.4 Segoe UI, system-ui, sans-serif;
+    background: #1a1e26;
+    color: var(--text);
+    padding: 12px 14px 24px;
+  }
+  h1 { font-size: 1.05rem; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 12px; }
+  .sub a { color: #7cb3ff; }
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(10, 14px);
+    gap: 2px;
+    padding: 6px;
+    background: #232831;
+    border: 1px solid #3d4450;
+    border-radius: 6px;
+  }
+  .palette span {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,.25);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .legend svg { vertical-align: middle; margin-right: 4px; }
+  .wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: fit-content;
+    max-width: 100%;
+    overflow: auto;
+    border: 1px solid #3d4450;
+    border-radius: 8px;
+    background: #22262e;
+  }
+  /* Painel lateral tipo M1+ (fios por carreira) */
+  .side {
+    flex: 0 0 auto;
+    background: #1e222a;
+    border-right: 1px solid #3d4450;
+    display: grid;
+    grid-template-columns: 32px 28px 28px 22px 22px 24px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    align-content: start;
+  }
+  .side .hd {
+    padding: 6px 2px;
+    background: #262b36;
+    color: var(--muted);
+    border-bottom: 1px solid #3d4450;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .side .cell-y {
+    padding: 4px 0;
+    border-bottom: 1px solid #333842;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+  }
+  .yarn-chip {
+    width: 22px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,.35);
+    line-height: 14px;
+    font-size: 9px;
+    color: rgba(0,0,0,.75);
+  }
+  .ud { color: var(--muted); font-weight: 700; letter-spacing: 1px; }
+  /* Área principal */
+  .main { flex: 0 0 auto; background: var(--bg); }
+  table.sym {
+    border-collapse: collapse;
+    border-spacing: 0;
+    user-select: none;
+  }
+  table.sym th {
+    background: #252a33;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 10px;
+    padding: 2px 1px;
+    border: 1px solid #3d4450;
+    min-width: 26px;
+    height: 22px;
+  }
+  table.sym th.needle-major {
+    background: var(--rail);
+    color: #fff;
+    font-size: 9px;
+  }
+  table.sym td {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid var(--grid);
+    background: linear-gradient(145deg, var(--cell) 0%, var(--cell-hi) 100%);
+  }
+  table.sym td.rapport-edge { border-right: 3px solid #8fa4c4; }
+  table.sym svg { display: block; margin: auto; }
+</style>
+
+<h1>Vista de símbolos (mockup estilo M1plus)</h1>
+<p class="sub">
+  Ícones em SVG inspirados na malha amarela sobre fundo cinza. Edite as matrizes no final do ficheiro.
+  Ver também a grelha com letras em <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
+</p>
+
+<div class="top-bar">
+  <div>
+    <div class="muted" style="font-size:10px;margin-bottom:4px">Paleta de fios (referência visual — cores genéricas)</div>
+    <div class="palette" id="yarnPalette"></div>
+  </div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<div class="wrap" id="board"></div>
+
+<script>
+/** Primeira agulha da grelha (réusua horizontal como no M1+) */
+const startNeedle = 150;
+
+/** Cada string = uma carreira, esquerda→direita; primeira string = topo da peça. */
+const rows = [
+  "KKKKKKKKKKKKKKKK",
+  "T.K.K..TT.K.K..T",
+  "KKKKKKKKKKKKKKKK",
+  "KKKKKKKKKKKKKKKK",
+  ".<....>..<....>.",
+  "KKKKKKKKKKKKKKKK",
+  "KKMKKMKKKKMKKMKK",
+  ".T....T..T....T.",
+  "KKKKKKKKKKKKKKKK",
+  "..>..<....>..<..",
+  "KKKKKKKKKKKKKKKK",
+  "KKKKKKKKKKKKKKKK"
+];
+
+/** Colunas de fio por carreira [dep1, dep2, auxA, auxB] — números são índices da paleta abaixo. */
+const yarnPaletteColors = [
+  "#e53935","#43a047","#1e88e5","#fdd835","#8e24aa","#fb8c00",
+  "#00acc1","#d81b60","#6d4c41","#3949ab","#c0ca33","#00897b",
+  "#5e35b1","#f4511e","#7cb342","#039be5","#ffb300","#8bc34a",
+  "#e91e63","#009688","#ff5722","#3f51b5","#cddc39","#795548",
+  "#607d8b","#ff9800","#4caf50","#9c27b0","#2196f3","#ffeb3b",
+  "#26a69a","#ec407a","#42a5f5","#d4e157","#b71c1c","#1b5e20",
+  "#0d47a1","#f9a825","#4a148c","#bf360c","#004d40","#311b92"
+];
+
+const feederByRow = rows.map(() => [1, 2, 5, 6]);
+
+const RAPPORT_SPLIT_AFTER = 8;
+
+function symKnit() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="K">
+    <path d="M4.2 13.2 Q10 5.2 15.8 13.2" fill="none" stroke="#e8c830" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`;
+}
+function symTuck() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="T">
+    <line x1="4" y1="7" x2="16" y2="7" stroke="#f0d868" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M5 13 Q10 9.5 15 13" fill="none" stroke="#c9b03a" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+  </svg>`;
+}
+function symMiss() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="M">
+    <circle cx="10" cy="11" r="5" fill="none" stroke="#7a8494" stroke-width="1.6" stroke-dasharray="2.5 2"/>
+  </svg>`;
+}
+function symTrLeft() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="transfer &lt;">
+    <path d="M14 10 L7 10 L10.5 6 M10.5 14 L7 10" fill="none" stroke="#7dcea0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+function symTrRight() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="transfer &gt;">
+    <path d="M6 10 L13 10 L9.5 6 M9.5 14 L13 10" fill="none" stroke="#7dcea0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+function symEmpty() {
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-label="."><circle cx="10" cy="10" r="1.2" fill="#5a6372" opacity=".5"/></svg>`;
+}
+
+function cellSvg(ch) {
+  switch (ch) {
+    case "K": return symKnit();
+    case "T": return symTuck();
+    case "M": return symMiss();
+    case "<": return symTrLeft();
+    case ">": return symTrRight();
+    case ".": return symEmpty();
+    default: return symEmpty();
+  }
+}
+
+function buildPalette() {
+  const el = document.getElementById("yarnPalette");
+  yarnPaletteColors.forEach((c) => {
+    const s = document.createElement("span");
+    s.style.background = c;
+    s.title = c;
+    el.appendChild(s);
+  });
+}
+
+function buildLegend() {
+  document.getElementById("legend").innerHTML = [
+    [symKnit(), "Malha (K)"],
+    [symTuck(), "Tuck (T)"],
+    [symMiss(), "Miss (M)"],
+    [symTrLeft() + symTrRight(), "Transferência (&lt; &gt;)"]
+  ].map(([svg, t]) => `<span>${svg}${t}</span>`).join("");
+}
+
+function buildBoard() {
+  const nCols = rows[0].length;
+  const nRows = rows.length;
+  let sideHtml = `
+    <div class="hd">Cr.</div>
+    <div class="hd">F1</div>
+    <div class="hd">F2</div>
+    <div class="hd">+</div>
+    <div class="hd">+</div>
+    <div class="hd">U/D</div>`;
+  for (let i = 0; i < nRows; i++) {
+    const courseNum = nRows - i;
+    const fd = feederByRow[i] || [1, 2, 5, 6];
+    sideHtml += `<div class="cell-y" style="font-size:11px;color:#cbd5e1">${courseNum}</div>`;
+    sideHtml += `<div class="cell-y"><span class="yarn-chip" style="background:${yarnPaletteColors[(fd[0]||1)-1]}">${fd[0]}</span></div>`;
+    sideHtml += `<div class="cell-y"><span class="yarn-chip" style="background:${yarnPaletteColors[(fd[1]||2)-1]}">${fd[1]}</span></div>`;
+    sideHtml += `<div class="cell-y"><span class="yarn-chip" style="background:${yarnPaletteColors[(fd[2]||5)-1]}">${fd[2]}</span></div>`;
+    sideHtml += `<div class="cell-y"><span class="yarn-chip" style="background:${yarnPaletteColors[(fd[3]||6)-1]}">${fd[3]}</span></div>`;
+    sideHtml += `<div class="cell-y ud">U</div>`;
+  }
+
+  let head = '<tr><th></th>';
+  for (let c = 0; c < nCols; c++) {
+    const need = startNeedle + c;
+    const major = need % 10 === 0;
+    head += `<th class="${major ? "needle-major" : ""}">${need}</th>`;
+  }
+  head += "</tr>";
+
+  let body = "";
+  for (let i = 0; i < nRows; i++) {
+    body += `<tr><th>${nRows - i}</th>`;
+    const line = rows[i];
+    for (let j = 0; j < line.length; j++) {
+      const edge = j === RAPPORT_SPLIT_AFTER - 1 ? " rapport-edge" : "";
+      body += `<td class="cell${edge}">${cellSvg(line[j])}</td>`;
+    }
+    body += "</tr>";
+  }
+
+  document.getElementById("board").innerHTML = `
+    <div class="side">${sideHtml}</div>
+    <div class="main"><table class="sym" role="grid"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+buildPalette();
+buildLegend();
+buildBoard();
+</script>
