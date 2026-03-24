@@ -1,0 +1,76 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>STOLL — ponto onda + leque (notas)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font: 15px/1.5 system-ui, Segoe UI, sans-serif; background:#10131a; color:#e9eef7; margin:0; padding:20px; max-width:920px; }
+  h1 { font-size:1.25rem; margin:0 0 8px; }
+  h2 { font-size:1.05rem; margin:28px 0 10px; border-bottom:1px solid #2a3443; padding-bottom:6px; }
+  small, .muted { color:#9fb0c7; font-size:0.85rem; }
+  ul { margin:8px 0 0 18px; }
+  li { margin:6px 0; }
+  code { background:#1a2230; padding:2px 6px; border-radius:4px; font-size:0.9em; }
+  .band { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+  .chip { padding:8px 12px; border-radius:8px; border:1px solid #2a3443; background:#151b27; font-size:0.88rem; }
+  .c1 { border-left:4px solid #e8dcc8; }
+  .c2 { border-left:4px solid #a67c52; }
+  .c3 { border-left:4px solid #c9b896; }
+  pre { background:#0d1118; border:1px solid #2a3443; padding:14px; overflow:auto; font-size:12px; line-height:1.4; border-radius:8px; }
+  a { color:#7cb3ff; }
+</style>
+
+<h1>Ponto da foto — roteiro M1plus</h1>
+<p class="muted">Baseado na amostra: faixas horizontais com <strong>rib/onda em chevron</strong> alternando com <strong>renda/leque</strong> e fios creme, bege e bege com metalizado. Símbolos K/T/M/TR: ver <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.</p>
+
+<h2>1. O que o tecido pede (em termos de máquina)</h2>
+<ul>
+  <li><strong>Onda / faixa sólida ondulada:</strong> deslocamento regular de malha com <strong>transferências</strong> (TR) em colunas, ao longo de várias carreiras — o “picos e vales” acompanham o rapport horizontal.</li>
+  <li><strong>Faixa de rendilhado / leques:</strong> <strong>buracos</strong> grandes = agulhas em <strong>miss (M)</strong> ou malha afastada por transferências; <strong>pilares</strong> verticais que ficam alinhados = colunas em knit contínuo ou com pouca variação.</li>
+  <li><strong>Feixes / leque fechado:</strong> feixes de fios horizontais no vazio sugerem <strong>acúmulo de laços</strong> — na prática: sequências de <strong>tuck (T)</strong> na mesma agulha (ou grupo) durante N carreiras, encerrando em <strong>knit (K)</strong> para “fechar” o feixe.</li>
+  <li><strong>Cores:</strong> cada faixa horizontal usa o fio do depósito correspondente (troca de fio na passagem de uma zona para outra).</li>
+</ul>
+
+<h2>2. Sequência vertical sugerida (repita de baixo para cima)</h2>
+<p class="muted">Ajuste nomes de fio aos seus depósitos (ex.: Y1=creme, Y2=caramelo, Y3=bege+metalizado).</p>
+<div class="band">
+  <span class="chip c1">① Onda / rib ondulado — <strong>Y1 creme</strong></span>
+  <span class="chip c3">② Renda leque — <strong>Y3 bege+metalizado</strong></span>
+  <span class="chip c2">③ Onda — <strong>Y2 caramelo</strong></span>
+  <span class="chip c2">④ Renda leque — <strong>Y2 caramelo</strong></span>
+  <span class="chip c1">⑤ Onda — <strong>Y1</strong></span>
+  <span class="chip c1">⑥ Renda — <strong>Y1</strong></span>
+  <span class="chip c3">⑦ Renda — <strong>Y3</strong></span>
+  <span class="chip c1">⑧ Onda — <strong>Y1</strong> (topo visível)</span>
+</div>
+
+<h2>3. Rapport horizontal (comece por 16 agulhas)</h2>
+<p>O teu mockup atual já usa <strong>16 agulhas</strong> de largura com marca visual no meio (8|9). Na amostra, cada repetição parece ter um <strong>pilar central</strong> e simetria em torno dele — confirme na máquina contando um leque completo de borda a borda.</p>
+<ul>
+  <li>Se o desenho “fechar” antes: teste <strong>12</strong> ou <strong>14</strong> agulhas.</li>
+  <li>Mapeie num papel: 1 coluna = pilar; meia-repetição = inclinação da onda + meio-leque.</li>
+</ul>
+
+<h2>4. Ordem prática de programação (M1plus)</h2>
+<ol style="margin-top:8px;">
+  <li>Definir <strong>largura total</strong> e <strong>rapport X</strong> (ex.: 16).</li>
+  <li>Desenhar a <strong>onda</strong>: tabela de TR por carreira (ex.: deslocar 1 agulha a cada 2 carreiras num padrão simétrico até formar um período da onda).</li>
+  <li>Na zona <strong>renda</strong>: marcar agulhas de <strong>pilar (K)</strong>, agulhas de <strong>vazio (M)</strong>, e agulhas de <strong>feixe (T repetido + K final)</strong>.</li>
+  <li><strong>Não misturar</strong> mudança de fio e bloco crítico de transferência na mesma carreira até estar estável — use carreira de transição se o software exigir.</li>
+  <li>Gravar prova: uma só repetição de rapport + 2 repetições para ver alinhamento dos pilares.</li>
+</ol>
+
+<h2>5. Próximo passo comigo</h2>
+<p>Para virar <strong>grade real de símbolos</strong> (como no HTML dos símbolos), preciso que você defina:</p>
+<ul>
+  <li><strong>Largura do rapport</strong> (12, 14 ou 16?) após contagem na amostra ou na prova.</li>
+  <li><strong>Altura em carreiras</strong> de: (a) uma onda completa, (b) um bloco de leque até o próximo rib — mesmo aproximado (ex.: “onda ~8 carreiras, leque ~14”).</li>
+</ul>
+<p class="muted">Com esses dois números monto a matriz <code>rows[]</code> carreira a carreira no mesmo formato do ficheiro de símbolos.</p>
+
+<pre>
+<!-- Template mental para uma carreira (exemplo, não é o ponto final):
+"KKKKKKKKKKKKKKKK"  → só malha
+".<....>..<....>."  → onda / transfers
+"T..M..M..M..M..T"  → tucks + miss no leque (ilustrativo)
+-->
+</pre>
