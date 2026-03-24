@@ -8,6 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,14 +20,43 @@ function parseArg(flag) {
   return process.argv[i + 1];
 }
 
+function validateHttpUrl(raw) {
+  let u;
+  try {
+    u = new URL(raw);
+  } catch {
+    return { ok: false, reason: "URL invalida (formato)." };
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    return { ok: false, reason: "Só sao aceites http: ou https:." };
+  }
+  const host = (u.hostname || "").toLowerCase();
+  if (!host || host === "..." || host.endsWith("...") || host.includes("..")) {
+    return {
+      ok: false,
+      reason:
+        "Hostname invalido ou placeholder (copiou o exemplo literal https://...). Use um link real, ex.: https://en.wikipedia.org/wiki/Yarn_count",
+    };
+  }
+  return { ok: true, url: u.href };
+}
+
 async function main() {
-  const url = parseArg("--url");
+  const urlRaw = parseArg("--url");
   const label = parseArg("--label") || "import_web";
   const maxChars = Number(parseArg("--max") || "80000");
-  if (!url) {
-    console.error("Uso: node import-web.mjs --url \"https://...\" [--label nome] [--max 80000]");
+  if (!urlRaw) {
+    console.error('Uso: node import-web.mjs --url "https://site.com/pagina" [--label nome] [--max 80000]');
+    console.error('Exemplo real: node import-web.mjs --url "https://en.wikipedia.org/wiki/Yarn_count" --label teste');
     process.exit(1);
   }
+
+  const check = validateHttpUrl(urlRaw);
+  if (!check.ok) {
+    console.error(`Erro: ${check.reason}`);
+    process.exit(1);
+  }
+  const url = check.url;
 
   const res = await fetch(url, {
     headers: {
@@ -60,6 +90,17 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(e);
+  const c = e && e.cause;
+  if (c && c.code === "ENOTFOUND") {
+    console.error(
+      "Erro DNS (ENOTFOUND): o endereco nao existe ou o PC nao conseguiu resolver o nome.\n" +
+        "- Confirme que copiou o URL completo (https://...)\n" +
+        "- Teste no browser; se nao abrir, o link esta errado\n" +
+        "- Verifique internet / VPN / DNS",
+    );
+    console.error(String(c && c.hostname ? `Hostname: ${c.hostname}` : ""));
+  } else {
+    console.error(e);
+  }
   process.exit(1);
 });

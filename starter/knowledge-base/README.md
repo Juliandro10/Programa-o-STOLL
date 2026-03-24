@@ -21,7 +21,7 @@ Interface: `http://localhost:3777`
 ## Import web
 
 ```powershell
-node import-web.mjs --url "https://..." --label "descricao"
+node import-web.mjs --url "https://en.wikipedia.org/wiki/Yarn_count" --label "exemplo"
 ```
 
 O texto é truncado e fica em `webImports` para você extrair números e criar uma **amostra** na UI.

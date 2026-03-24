@@ -77,7 +77,7 @@ Abra `http://localhost:3777`.
 
 ```powershell
 cd "starter/knowledge-base"
-node import-web.mjs --url "https://..." --label "ficha fornecedor"
+node import-web.mjs --url "https://en.wikipedia.org/wiki/Yarn_count" --label "exemplo_contagem_fio"
 ```
 
 > A extração automática de densidade a partir da internet é limitada por direitos de uso e
