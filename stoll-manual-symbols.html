@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>STOLL manual simbolos</title>
+<style>
+body{font:14px Arial;background:#10131a;color:#e9eef7;padding:12px}
+table{border-collapse:collapse;font-family:monospace}
+th,td{border:1px solid #2a3443;padding:6px;min-width:24px;text-align:center}
+th{background:#101722}.K{background:#1e3a8a}.T{background:#92400e}.M{background:#5b21b6}.TR{background:#065f46}.NA{background:#374151}
+tr>*:nth-child(9){border-right:3px solid #5b708f} /* separa rapport 8|9 */
+small{color:#9fb0c7}
+</style>
+<h3>Mockup STOLL M1plus (sem CA)</h3>
+<small>K=knit, T=tuck, M=miss, &lt;/&gt;=transfer, .=no action</small>
+<div id="g"></div>
+<script>
+const rows=[
+"KKKKKKKKKKKKKKKK",
+"T.K.K..TT.K.K..T",
+"KKKKKKKKKKKKKKKK",
+"KKKKKKKKKKKKKKKK",
+".<....>..<....>.",
+"KKKKKKKKKKKKKKKK",
+"KKMKKMKKKKMKKMKK",
+".T....T..T....T.",
+"KKKKKKKKKKKKKKKK",
+"..>..<....>..<..",
+"KKKKKKKKKKKKKKKK",
+"KKKKKKKKKKKKKKKK"
+];
+let h='<table><tr><th>R</th>'+Array.from({length:16},(_,i)=>`<th>${String(i+1).padStart(2,"0")}</th>`).join('')+'</tr>';
+for(let i=0;i<12;i++){h+=`<tr><th>R${String(12-i).padStart(2,"0")}</th>`;for(const c of rows[i]){const cl=c==="K"?"K":c==="T"?"T":c==="M"?"M":(c==="."?"NA":"TR");h+=`<td class="${cl}">${c}</td>`}h+='</tr>'}
+document.getElementById('g').innerHTML=h+'</table>';
+</script>
