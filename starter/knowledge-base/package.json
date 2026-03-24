@@ -1,0 +1,12 @@
+{
+  "name": "m1plus-knowledge-base",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "import-web": "node import-web.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "currency": "USD",
+  "monthly_budget_usd": 40.0,
+  "warning_threshold_percent": 80,
+  "hard_stop_enabled": true,
+  "default_estimated_call_usd": 0.15
+}

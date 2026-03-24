@@ -1,0 +1,407 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Base de conhecimento M1+ (local)</title>
+<style>
+  body {
+    font: 14px/1.45 Segoe UI, system-ui, sans-serif;
+    margin: 0;
+    background: #12151c;
+    color: #e8eaef;
+  }
+  header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #2f3544;
+    background: #1b2029;
+  }
+  h1 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .muted {
+    color: #9aa3b2;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+  main {
+    padding: 16px;
+    max-width: 1100px;
+  }
+  section {
+    border: 1px solid #2f3544;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: #181c26;
+  }
+  h2 {
+    margin: 0 0 10px;
+    font-size: 0.98rem;
+  }
+  label {
+    display: block;
+    font-size: 0.78rem;
+    color: #b7c0ce;
+    margin-top: 8px;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    margin-top: 4px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid #3b4455;
+    background: #10131a;
+    color: #e8eaef;
+  }
+  textarea {
+    min-height: 72px;
+    resize: vertical;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #4a5260;
+    background: #2c3340;
+    color: #e8eaef;
+    cursor: pointer;
+  }
+  button.secondary {
+    background: #1f2633;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  th,
+  td {
+    border: 1px solid #2f3544;
+    padding: 6px;
+    text-align: left;
+  }
+  th {
+    background: #212733;
+    color: #c5cdd8;
+  }
+  code {
+    background: #10131a;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  a {
+    color: #7cb3ff;
+  }
+</style>
+<header>
+  <h1>Base de conhecimento (densidade / calibre)</h1>
+  <div class="muted">
+    Dados locais em <code>library.json</code>. Importação web guarda excerto para revisão — não substitui fichas
+    técnicas.
+  </div>
+</header>
+<main>
+  <section>
+    <h2>Cadastro manual — fio</h2>
+    <div class="row">
+      <div>
+        <label>Nome</label>
+        <input id="y_name" placeholder="ex.: Algodão 30/2" />
+      </div>
+      <div>
+        <label>Material</label>
+        <input id="y_mat" placeholder="ex.: algodão" />
+      </div>
+      <div>
+        <label>Cabos / fios</label>
+        <input id="y_plies" type="number" step="1" placeholder="ex.: 2" />
+      </div>
+      <div>
+        <label>Tex (opcional)</label>
+        <input id="y_tex" type="number" step="0.01" />
+      </div>
+      <div>
+        <label>Nm (opcional)</label>
+        <input id="y_nm" type="number" step="0.01" />
+      </div>
+    </div>
+    <label>Notas</label>
+    <textarea id="y_notes"></textarea>
+    <button type="button" id="btn_yarn">Guardar fio</button>
+  </section>
+
+  <section>
+    <h2>Cadastro manual — máquina / finura</h2>
+    <div class="row">
+      <div>
+        <label>Nome / calibre</label>
+        <input id="m_name" placeholder="ex.: E7.2, 12 gg..." />
+      </div>
+      <div>
+        <label>gauge E (opcional)</label>
+        <input id="m_ge" type="number" step="0.1" placeholder="ex.: 7.2" />
+      </div>
+      <div>
+        <label>Passo agulha mm (opcional)</label>
+        <input id="m_pitch" type="number" step="0.01" />
+      </div>
+      <div>
+        <label>Marca / modelo</label>
+        <input id="m_brand" placeholder="STOLL ..." />
+      </div>
+    </div>
+    <label>Notas</label>
+    <textarea id="m_notes"></textarea>
+    <button type="button" id="btn_machine">Guardar máquina</button>
+  </section>
+
+  <section>
+    <h2>Cadastro manual — tipo de ponto</h2>
+    <div class="row">
+      <div>
+        <label>Código curto</label>
+        <input id="s_code" placeholder="ex.: jersey, rib1x1, ponto_foto_01" />
+      </div>
+      <div>
+        <label>Nome</label>
+        <input id="s_name" placeholder="ex.: Jersey face simples" />
+      </div>
+    </div>
+    <label>Notas</label>
+    <textarea id="s_notes"></textarea>
+    <button type="button" id="btn_stitch">Guardar tipo de ponto</button>
+  </section>
+
+  <section>
+    <h2>Amostra de densidade (prova / swatch)</h2>
+    <p class="muted" style="margin: 0 0 8px">
+ Medições em <strong>10 cm</strong> (carreiras e colunas de malha). Fonte: manual ou notas suas após prova na
+      máquina.
+    </p>
+    <div class="row">
+      <div>
+        <label>Fio</label>
+        <select id="d_yarn"></select>
+      </div>
+      <div>
+        <label>Máquina</label>
+        <select id="d_machine"></select>
+      </div>
+      <div>
+        <label>Tipo de ponto</label>
+        <select id="d_stitch"></select>
+      </div>
+      <div>
+        <label>Carreiras / 10 cm</label>
+        <input id="d_c10" type="number" step="0.1" />
+      </div>
+      <div>
+        <label>Colunas (wales) / 10 cm</label>
+        <input id="d_w10" type="number" step="0.1" />
+      </div>
+      <div>
+        <label>Tensão / observação</label>
+        <input id="d_tension" placeholder="média, +1, etc." />
+      </div>
+      <div>
+        <label>Fonte</label>
+        <select id="d_source">
+          <option value="manual">manual</option>
+          <option value="prova_maquina">prova na máquina</option>
+          <option value="import_web_revisado">import web (revisado)</option>
+        </select>
+      </div>
+      <div>
+        <label>URL (opcional)</label>
+        <input id="d_url" placeholder="https://..." />
+      </div>
+    </div>
+    <label>Notas</label>
+    <textarea id="d_notes"></textarea>
+    <button type="button" id="btn_density">Guardar amostra</button>
+  </section>
+
+  <section>
+    <h2>Calculadora de tamanho (a partir de uma amostra)</h2>
+    <div class="row">
+      <div>
+        <label>Amostra</label>
+        <select id="c_sample"></select>
+      </div>
+      <div>
+        <label>Largura desejada (cm)</label>
+        <input id="c_w" type="number" step="0.1" />
+      </div>
+      <div>
+        <label>Altura desejada (cm)</label>
+        <input id="c_h" type="number" step="0.1" />
+      </div>
+    </div>
+    <button type="button" id="btn_calc">Calcular agulhas + carreiras</button>
+    <pre id="c_out" style="margin-top:10px;white-space:pre-wrap;background:#10131a;padding:10px;border-radius:6px"></pre>
+  </section>
+
+  <section>
+    <h2>Tabelas guardadas</h2>
+    <h3 style="font-size:0.9rem;margin:10px 0 6px">Amostras</h3>
+    <div style="overflow:auto">
+      <table id="tbl_samples">
+        <thead>
+          <tr>
+            <th>Fio</th>
+            <th>Máquina</th>
+            <th>Ponto</th>
+            <th>car/10</th>
+            <th>col/10</th>
+            <th>fonte</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 style="font-size:0.9rem;margin:14px 0 6px">Referências sugeridas (editáveis em library.json)</h3>
+    <ul id="refs" class="muted"></ul>
+  </section>
+</main>
+<script>
+  async function api(path, opts) {
+    const r = await fetch(path, opts);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  function opt(select, value, label) {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    select.appendChild(o);
+  }
+
+  function fillSelects(lib) {
+    const dy = document.getElementById("d_yarn");
+    const dm = document.getElementById("d_machine");
+    const ds = document.getElementById("d_stitch");
+    const cs = document.getElementById("c_sample");
+    ;[dy, dm, ds, cs].forEach((el) => (el.innerHTML = ""));
+    lib.yarns.forEach((y) => opt(dy, y.id, y.name));
+    lib.machines.forEach((m) => opt(dm, m.id, m.name));
+    lib.stitchTypes.forEach((s) => opt(ds, s.id, `${s.code} — ${s.name}`));
+    lib.densitySamples.forEach((d) => {
+      const yn = lib.yarns.find((x) => x.id === d.yarnId)?.name || d.yarnId;
+      const mn = lib.machines.find((x) => x.id === d.machineId)?.name || d.machineId;
+      const sn = lib.stitchTypes.find((x) => x.id === d.stitchTypeId)?.code || d.stitchTypeId;
+      opt(cs, d.id, `${yn} | ${mn} | ${sn} (${d.coursesPer10cm}/${d.walesPer10cm})`);
+    });
+  }
+
+  function renderTables(lib) {
+    const tb = document.querySelector("#tbl_samples tbody");
+    tb.innerHTML = "";
+    lib.densitySamples.forEach((d) => {
+      const tr = document.createElement("tr");
+      const yn = lib.yarns.find((x) => x.id === d.yarnId)?.name || d.yarnId;
+      const mn = lib.machines.find((x) => x.id === d.machineId)?.name || d.machineId;
+      const sn = lib.stitchTypes.find((x) => x.id === d.stitchTypeId)?.name || d.stitchTypeId;
+      tr.innerHTML = `<td>${yn}</td><td>${mn}</td><td>${sn}</td><td>${d.coursesPer10cm}</td><td>${d.walesPer10cm}</td><td>${d.source}</td>`;
+      tb.appendChild(tr);
+    });
+    const ul = document.getElementById("refs");
+    ul.innerHTML = "";
+    (lib.references || []).forEach((r) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${r.url}" target="_blank" rel="noreferrer">${r.title}</a> — ${r.note || ""}`;
+      ul.appendChild(li);
+    });
+  }
+
+  async function refresh() {
+    const lib = await api("/api/library");
+    fillSelects(lib);
+    renderTables(lib);
+    return lib;
+  }
+
+  document.getElementById("btn_yarn").onclick = async () => {
+    await api("/api/yarns", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("y_name").value,
+        material: document.getElementById("y_mat").value,
+        plies: document.getElementById("y_plies").value,
+        tex: document.getElementById("y_tex").value,
+        nm: document.getElementById("y_nm").value,
+        notes: document.getElementById("y_notes").value,
+      }),
+    });
+    await refresh();
+  };
+
+  document.getElementById("btn_machine").onclick = async () => {
+    await api("/api/machines", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("m_name").value,
+        gaugeE: document.getElementById("m_ge").value,
+        pitchMm: document.getElementById("m_pitch").value,
+        brandModel: document.getElementById("m_brand").value,
+        notes: document.getElementById("m_notes").value,
+      }),
+    });
+    await refresh();
+  };
+
+  document.getElementById("btn_stitch").onclick = async () => {
+    await api("/api/stitch-types", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        code: document.getElementById("s_code").value,
+        name: document.getElementById("s_name").value,
+        notes: document.getElementById("s_notes").value,
+      }),
+    });
+    await refresh();
+  };
+
+  document.getElementById("btn_density").onclick = async () => {
+    await api("/api/density-samples", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        yarnId: document.getElementById("d_yarn").value,
+        machineId: document.getElementById("d_machine").value,
+        stitchTypeId: document.getElementById("d_stitch").value,
+        coursesPer10cm: document.getElementById("d_c10").value,
+        walesPer10cm: document.getElementById("d_w10").value,
+        tension: document.getElementById("d_tension").value,
+        source: document.getElementById("d_source").value,
+        sourceUrl: document.getElementById("d_url").value,
+        notes: document.getElementById("d_notes").value,
+      }),
+    });
+    await refresh();
+  };
+
+  document.getElementById("btn_calc").onclick = async () => {
+    const out = await api("/api/calc-size", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        sampleId: document.getElementById("c_sample").value,
+        widthCm: document.getElementById("c_w").value,
+        heightCm: document.getElementById("c_h").value,
+      }),
+    });
+    document.getElementById("c_out").textContent = JSON.stringify(out, null, 2);
+  };
+
+  refresh().catch((e) => alert(String(e)));
+</script>

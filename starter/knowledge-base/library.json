@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "yarns": [],
+  "machines": [],
+  "stitchTypes": [],
+  "densitySamples": [],
+  "webImports": [],
+  "references": [
+    {
+      "title": "Contagem de fios (Tex, Nm, Denier) — visão geral",
+      "url": "https://en.wikipedia.org/wiki/Yarn_count",
+      "note": "Útil para padronizar Tex/Nm antes de gravar na base; confira sempre a ficha do fornecedor."
+    },
+    {
+      "title": "STOLL — site oficial (documentação / produtos)",
+      "url": "https://www.stoll.com/",
+      "note": "Ponto de partida para manuais e especificações da sua máquina/software."
+    }
+  ]
+}
