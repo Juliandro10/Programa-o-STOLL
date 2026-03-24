@@ -138,6 +138,11 @@
       linear-gradient(145deg, var(--cell) 0%, var(--cell-hi) 100%);
   }
   table.sym td.rapport-edge { border-right: 3px solid #8fa4c4; }
+  table.sym td.cell-m1 {
+    background-image: none;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
   table.sym svg { display: block; margin: auto; }
   .ref-wrap {
     margin: 14px 0 18px;
@@ -167,20 +172,30 @@
     font-size: 0.8rem;
     color: var(--muted);
   }
+  .ref-wrap .subhead {
+    font-size: 0.88rem;
+    margin: 18px 0 8px;
+    font-weight: 600;
+    color: #c5cdd8;
+  }
+  .ref-wrap .subhead:first-of-type { margin-top: 0; }
 </style>
 
 <h1>Vista de símbolos — mesma linguagem da paleta M1plus</h1>
 <p class="sub">
-  Os desenhos na grelha seguem o <strong>print oficial da paleta</strong>: <em>linha horizontal = cama de agulhas</em>, <em>alça = malha</em>,
-  <em>traço ondulado = tuck</em>, <em>pontos = agulha sem acção</em>, <em>seta tracejada verde ↑ / vermelha ↓</em> com a malha = transferências
-  (como na 1.ª fila da paleta). Caracteres <code>K T M &lt; &gt; .</code> são só atalhos para estes desenhos no ficheiro HTML.
-  Letras soltas: <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
+  A <strong>grelha em baixo</strong> imita o ecrã de desenho: cada célula com <strong>cor de função</strong> (como no M1plus) e traçado do fio em <strong>tan</strong>.
+  Transferências usam <strong>setas cinzas sólidas</strong> ↑ / ↓ como na sua captura. Caracteres <code>K T M &lt; &gt; .</code> são só atalhos no HTML.
+  Letras: <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
 </p>
 
 <div class="ref-wrap">
-  <h2>Paleta do programa (referência)</h2>
-  <img src="assets/m1plus-paleta-referencia.png" alt="Paleta de símbolos STOLL M1plus" width="640" height="360" loading="lazy" />
-  <p class="cap">Ficheiro incluído no repositório: <code>assets/m1plus-paleta-referencia.png</code> — o mesmo que enviou.</p>
+  <h2>Referências (prints seus)</h2>
+  <p class="subhead">Paleta de símbolos</p>
+  <img src="assets/m1plus-paleta-referencia.png" alt="Paleta STOLL M1plus" loading="lazy" />
+  <p class="cap"><code>assets/m1plus-paleta-referencia.png</code></p>
+  <p class="subhead">Símbolos na grelha de criação de pontos</p>
+  <img src="assets/m1plus-grelha-simbolos-exemplo.png" alt="Grelha de símbolos M1plus com células coloridas" loading="lazy" />
+  <p class="cap"><code>assets/m1plus-grelha-simbolos-exemplo.png</code> — captura que enviou (como ficam os ícones no desenho).</p>
 </div>
 
 <div class="top-bar">
@@ -200,8 +215,8 @@ const startNeedle = 150;
 /**
  * Cada string = uma carreira, esquerda → direita; primeira string = topo da peça.
  * Mapa apenas para este HTML (não confundir com códigos do ficheiro .pat / .knit do M1plus):
- *   K malha estática | T tuck | M falha | < transf. seta verde ↑ | > transf. seta vermelha ↓ | . só linha cama
- * Convenção das setas alinhada à 1.ª fila da paleta; se no seu fluxo for o inverso, troque os casos em cellSvg().
+ *   K malha | T tuck | M falha/pontos | < transf. seta ↑ cinza | > transf. seta ↓ cinza | . célula neutra
+ * Cores de célula: função cellBg() — ajuste aos seus ficheiros M1+.
  * Pode acrescentar aliases em STITCH_MAP abaixo.
  */
 const rows = [
@@ -241,50 +256,63 @@ const STITCH_MAP = {
 };
 
 const VB = "0 0 22 22";
-const STROKE_BED = "#9aa3b2";
-const STROKE_LOOP = "#e8c930";
-const GREEN = "#35d399";
-const RED = "#ff5c5c";
+/** Traçado do fio / linha de malha (tan, como no M1plus) */
+const STROKE_YARN = "#c9a574";
+/** Setas grandes de transferência entre camas */
+const ARROW_GREY = "#c8d0da";
+
+function cellBg(ch) {
+  /** Cores de célula aproximadas ao ecrã colorido do programa (função / contexto). */
+  const m = {
+    ".": "#4d5460",
+    K: "#4a6588",
+    T: "#4f7a52",
+    M: "#744a74",
+    "<": "#145454",
+    ">": "#703038",
+  };
+  return m[ch] || m["."];
+}
 
 function symKnit() {
   return `<svg viewBox="${VB}" width="22" height="22" aria-label="malha">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
-    <path d="M6.5 11 Q11 17.2 15.5 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.85" stroke-linecap="round"/>
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.25" opacity="0.92"/>
+    <path d="M6.5 11 Q11 17.2 15.5 11" fill="none" stroke="${STROKE_YARN}" stroke-width="1.9" stroke-linecap="round"/>
   </svg>`;
 }
 function symTuck() {
   return `<svg viewBox="${VB}" width="22" height="22" aria-label="tuck">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.25" opacity="0.92"/>
     <path d="M5.5 11 C6.5 7.5 8 7.5 9.2 11 C10.3 14 11.7 14 12.8 11 C14 7.5 15.5 7.5 16.5 11"
-      fill="none" stroke="${STROKE_LOOP}" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+      fill="none" stroke="${STROKE_YARN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 function symMiss() {
   return `<svg viewBox="${VB}" width="22" height="22" aria-label="falha / vazio">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
-    <circle cx="11" cy="7.2" r="1.15" fill="#d6dde8"/>
-    <circle cx="11" cy="14.8" r="1.15" fill="#d6dde8"/>
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.25" opacity="0.92"/>
+    <circle cx="11" cy="7.2" r="2" fill="${STROKE_YARN}" opacity="0.35"/>
+    <circle cx="11" cy="7.2" r="0.85" fill="#4a3a2a"/>
+    <circle cx="11" cy="14.8" r="2" fill="${STROKE_YARN}" opacity="0.35"/>
+    <circle cx="11" cy="14.8" r="0.85" fill="#4a3a2a"/>
   </svg>`;
 }
 function symTrLeft() {
-  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência &lt; (verde tracejado ↑)">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
-    <path d="M7 11 Q11 16.5 15 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="11" y1="15" x2="11" y2="7" stroke="${GREEN}" stroke-width="1.35" stroke-dasharray="2.6 2" stroke-linecap="round"/>
-    <polygon points="11,5.5 8.9,8.6 13.1,8.6" fill="${GREEN}"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência (↑)">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.15" opacity="0.75"/>
+    <line x1="11" y1="16.8" x2="11" y2="6.2" stroke="${ARROW_GREY}" stroke-width="2.85" stroke-linecap="round"/>
+    <polygon points="11,4.3 8,8.4 14,8.4" fill="${ARROW_GREY}"/>
   </svg>`;
 }
 function symTrRight() {
-  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência &gt; (vermelho tracejado ↓)">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="1.15"/>
-    <path d="M7 11 Q11 16.5 15 11" fill="none" stroke="${STROKE_LOOP}" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="11" y1="7" x2="11" y2="15" stroke="${RED}" stroke-width="1.35" stroke-dasharray="2.6 2" stroke-linecap="round"/>
-    <polygon points="11,16.5 8.9,13.4 13.1,13.4" fill="${RED}"/>
+  return `<svg viewBox="${VB}" width="22" height="22" aria-label="transferência (↓)">
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="1.15" opacity="0.75"/>
+    <line x1="11" y1="5.2" x2="11" y2="15.8" stroke="${ARROW_GREY}" stroke-width="2.85" stroke-linecap="round"/>
+    <polygon points="11,17.7 8,13.6 14,13.6" fill="${ARROW_GREY}"/>
   </svg>`;
 }
 function symEmpty() {
   return `<svg viewBox="${VB}" width="22" height="22" aria-label="só linha cama">
-    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_BED}" stroke-width="0.85" opacity="0.5"/>
+    <line x1="1.5" y1="11" x2="20.5" y2="11" stroke="${STROKE_YARN}" stroke-width="0.9" opacity="0.45"/>
   </svg>`;
 }
 
@@ -313,10 +341,10 @@ function buildPalette() {
 
 function buildLegend() {
   document.getElementById("legend").innerHTML = [
-    [symKnit(), "Malha (linha+alça)"],
-    [symTuck(), "Tuck (linha+onda)"],
-    [symMiss(), "Pontos (sem trabalho)"],
-    [symTrLeft() + symTrRight(), "&lt; verde ↑ / &gt; vermelho ↓"]
+    [symKnit(), "Malha"],
+    [symTuck(), "Tuck"],
+    [symMiss(), "Pontos / função"],
+    [symTrLeft() + symTrRight(), "Transf. &lt; ↑ / &gt; ↓ (cinza)"],
   ].map(([svg, t]) => `<span>${svg}${t}</span>`).join("");
 }
 
@@ -355,7 +383,8 @@ function buildBoard() {
     const line = rows[i];
     for (let j = 0; j < line.length; j++) {
       const edge = j === RAPPORT_SPLIT_AFTER - 1 ? " rapport-edge" : "";
-      body += `<td class="cell${edge}">${cellSvg(line[j])}</td>`;
+      const ch = STITCH_MAP[line[j]] || line[j];
+      body += `<td class="cell${edge} cell-m1" style="background-color:${cellBg(ch)}">${cellSvg(line[j])}</td>`;
     }
     body += "</tr>";
   }
