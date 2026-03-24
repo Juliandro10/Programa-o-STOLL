@@ -280,10 +280,11 @@
 
 <h1>Vista de símbolos — mesma linguagem da paleta M1plus</h1>
 <p class="sub">
-  A <strong>grelha em baixo</strong> imita o ecrã de desenho: cada célula com <strong>cor de função</strong> (como no M1plus) e traçado do fio em <strong>tan</strong>.
-  Transferências usam <strong>setas cinzas sólidas</strong> ↑ / ↓ como na sua captura. Caracteres <code>K T M &lt; &gt; .</code> são só atalhos no HTML.
+  A <strong>grelha principal</strong> e a <strong>grelha de composição</strong> usam as mesmas dimensões quando abre com link da calculadora
+  (<code>?composeCols=</code> e <code>?composeRows=</code>). Caracteres <code>K T M &lt; &gt; .</code> são atalhos no HTML.
   Letras: <a href="stoll-manual-symbols.html">stoll-manual-symbols.html</a>.
 </p>
+<p id="boardFromCalc" class="sub" style="display: none; color: #7cb3ff; border: 1px solid #3d5080; padding: 8px 10px; border-radius: 8px; background: #1a2233"></p>
 
 <div class="ref-wrap">
   <h2>Referências (prints seus)</h2>
@@ -323,17 +324,27 @@
 </div>
 
 <script>
-/** Primeira agulha da grelha (como régua verde no M1+) */
-const startNeedle = 150;
+const urlParams = new URLSearchParams(location.search);
+function clampInt(n, min, max, fallback) {
+  const v = parseInt(String(n), 10);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(min, Math.min(max, v));
+}
+const COMPOSE_COLS = clampInt(urlParams.get("composeCols"), 1, 500, 16);
+const COMPOSE_ROWS = clampInt(urlParams.get("composeRows"), 1, 500, 12);
+const COMPOSE_START_NEEDLE = clampInt(urlParams.get("composeStartNeedle"), 1, 5000, 1);
+/** Aberto a partir da calculadora (URL com dimensões) — grelha principal = mesma largura/altura. */
+const GRID_FROM_CALC = urlParams.has("composeCols") || urlParams.has("composeRows");
+
+/** Primeira agulha na régua (painel principal alinha com composição quando vem da calculadora). */
+const startNeedle = GRID_FROM_CALC ? COMPOSE_START_NEEDLE : 150;
 
 /**
  * Cada string = uma carreira, esquerda → direita; primeira string = topo da peça.
  * Mapa apenas para este HTML (não confundir com códigos do ficheiro .pat / .knit do M1plus):
  *   K/T/M/</>/. + símbolos técnicos adicionais (W,G,R,U,D,L,S)
- * Cores de célula: função cellBg() — ajuste aos seus ficheiros M1+.
- * Pode acrescentar aliases em STITCH_MAP abaixo.
  */
-const rows = [
+const DEFAULT_SAMPLE_ROWS = [
   "KKKKKKKKKKKKKKKK",
   "T.K.K..TT.K.K..T",
   "KKKKKKKKKKKKKKKK",
@@ -348,6 +359,11 @@ const rows = [
   "KKKKKKKKKKKKKKKK"
 ];
 
+const emptyLine = () => ".".repeat(COMPOSE_COLS);
+let rows = GRID_FROM_CALC
+  ? Array.from({ length: COMPOSE_ROWS }, emptyLine)
+  : DEFAULT_SAMPLE_ROWS.slice();
+
 /** Colunas de fio por carreira [dep1, dep2, auxA, auxB] — números são índices da paleta abaixo. */
 const yarnPaletteColors = [
   "#e53935","#43a047","#1e88e5","#fdd835","#8e24aa","#fb8c00",
@@ -359,19 +375,12 @@ const yarnPaletteColors = [
   "#0d47a1","#f9a825","#4a148c","#bf360c","#004d40","#311b92"
 ];
 
-const feederByRow = rows.map(() => [1, 2, 5, 6]);
+let feederByRow = rows.map(() => [1, 2, 5, 6]);
 
-const RAPPORT_SPLIT_AFTER = 8;
-
-const urlParams = new URLSearchParams(location.search);
-function clampInt(n, min, max, fallback) {
-  const v = parseInt(String(n), 10);
-  if (!Number.isFinite(v)) return fallback;
-  return Math.max(min, Math.min(max, v));
-}
-const COMPOSE_COLS = clampInt(urlParams.get("composeCols"), 1, 500, 16);
-const COMPOSE_ROWS = clampInt(urlParams.get("composeRows"), 1, 500, 12);
-const COMPOSE_START_NEEDLE = clampInt(urlParams.get("composeStartNeedle"), 1, 5000, 1);
+/** Separador visual de rapport (meio da largura se veio da calculadora). */
+const RAPPORT_SPLIT_AFTER = GRID_FROM_CALC
+  ? Math.max(1, Math.min(COMPOSE_COLS - 1, Math.floor(COMPOSE_COLS / 2)))
+  : 8;
 
 /** Opcional: outras teclas → símbolo base (edite ao ritmo da sua folha de apontamentos). */
 const STITCH_MAP = {
@@ -527,7 +536,12 @@ const symbolOptions = [
 ];
 
 let activeSymbol = "K";
-let composeRows = Array.from({ length: COMPOSE_ROWS }, () => Array(COMPOSE_COLS).fill("."));
+let composeRows = rows.map((line) => {
+  const src = line.split("");
+  const row = Array(COMPOSE_COLS).fill(".");
+  for (let i = 0; i < Math.min(src.length, COMPOSE_COLS); i++) row[i] = src[i];
+  return row;
+});
 
 function buildPicker() {
   const el = document.getElementById("picker");
@@ -547,6 +561,20 @@ function buildPicker() {
 function refreshRecipeOutput() {
   const lines = composeRows.map((line) => `"${line.join("")}"`);
   document.getElementById("recipeOutput").value = `const rows = [\n  ${lines.join(",\n  ")}\n];`;
+}
+
+/** Até este n.º de células, o painel grande espelha a composição a cada clique. */
+const SYNC_BOARD_MAX_CELLS = 8000;
+
+function syncMainBoardFromCompose() {
+  rows = composeRows.map((r) => r.join(""));
+  feederByRow = rows.map(() => [1, 2, 5, 6]);
+  buildBoard();
+}
+
+function maybeSyncBoardFromCompose() {
+  if (COMPOSE_COLS * COMPOSE_ROWS > SYNC_BOARD_MAX_CELLS) return;
+  syncMainBoardFromCompose();
 }
 
 function renderComposeGrid() {
@@ -573,6 +601,7 @@ function renderComposeGrid() {
       td.style.backgroundColor = cellBg(activeSymbol);
       td.innerHTML = cellSvg(activeSymbol);
       refreshRecipeOutput();
+      maybeSyncBoardFromCompose();
     });
   });
 }
@@ -646,10 +675,16 @@ function buildBoard() {
     <div class="main"><table class="sym" role="grid"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
-if (urlParams.get("composeCols") || urlParams.get("composeRows")) {
+if (GRID_FROM_CALC) {
+  const msg = `Dimensões da calculadora: ${COMPOSE_COLS} agulhas × ${COMPOSE_ROWS} carreiras. Régua a partir da agulha ${COMPOSE_START_NEEDLE}. Grelha principal e composição estão alinhadas (começa vazia com “.”).`;
   const el = document.getElementById("composeFromCalc");
   el.style.display = "block";
-  el.textContent = `Grelha ativa: ${COMPOSE_COLS} agulhas (largura) × ${COMPOSE_ROWS} carreiras (altura). Primeira agulha: ${COMPOSE_START_NEEDLE}.`;
+  el.textContent = msg;
+  const top = document.getElementById("boardFromCalc");
+  if (top) {
+    top.style.display = "block";
+    top.textContent = msg;
+  }
 }
 
 buildPalette();
@@ -661,12 +696,14 @@ refreshRecipeOutput();
 
 document.getElementById("clearGridBtn").addEventListener("click", () => {
   composeRows = Array.from({ length: COMPOSE_ROWS }, () => Array(COMPOSE_COLS).fill("."));
+  syncMainBoardFromCompose();
   renderComposeGrid();
   refreshRecipeOutput();
 });
 
 document.getElementById("loadSampleBtn").addEventListener("click", () => {
-  composeRows = rows.map((line) => {
+  const sample = DEFAULT_SAMPLE_ROWS;
+  composeRows = sample.map((line) => {
     const src = line.split("");
     const row = Array(COMPOSE_COLS).fill(".");
     for (let i = 0; i < Math.min(src.length, COMPOSE_COLS); i++) row[i] = src[i];
@@ -674,6 +711,9 @@ document.getElementById("loadSampleBtn").addEventListener("click", () => {
   });
   while (composeRows.length < COMPOSE_ROWS) composeRows.push(Array(COMPOSE_COLS).fill("."));
   composeRows = composeRows.slice(0, COMPOSE_ROWS);
+  rows = composeRows.map((r) => r.join(""));
+  feederByRow = rows.map(() => [1, 2, 5, 6]);
+  buildBoard();
   renderComposeGrid();
   refreshRecipeOutput();
 });
