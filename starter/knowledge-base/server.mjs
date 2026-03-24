@@ -89,7 +89,10 @@ app.post("/api/stitch-types", (req, res) => {
     notes: String(b.notes || "").trim(),
   };
   if (!row.code || !row.name) return res.status(400).json({ error: "code e name obrigatorios" });
-  lib.stitchTypes = lib.stitchTypes.filter((s) => s.id !== row.id);
+  const codeLc = row.code.toLowerCase();
+  lib.stitchTypes = lib.stitchTypes.filter(
+    (s) => s.id !== row.id && String(s.code).toLowerCase() !== codeLc,
+  );
   lib.stitchTypes.push(row);
   writeLibrary(lib);
   res.json(row);

@@ -129,6 +129,38 @@
     background: #2a1818;
     color: #f5caca;
   }
+  .flow-panel {
+    border: 1px solid #3d5080;
+    background: #1a2230;
+  }
+  .flow-panel ol {
+    margin: 8px 0 0 20px;
+    padding: 0;
+  }
+  .flow-panel li {
+    margin: 4px 0;
+  }
+  .flow-ok {
+    color: #7dcea0;
+  }
+  .flow-warn {
+    color: #f0c674;
+  }
+  a.btnlink {
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #4a5260;
+    background: #1f2633;
+    color: #7cb3ff;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  a.btnlink:hover {
+    background: #2a3344;
+  }
 </style>
 <div id="fileBanner" class="banner">
   <strong>Abriu o ficheiro HTML diretamente (file://)</strong>
@@ -145,6 +177,19 @@
 </header>
 <main>
   <div id="statusbar" class="statusbar" style="display: none"></div>
+  <section class="flow-panel">
+    <h2>O que falta para a calculadora e o mockup</h2>
+    <p class="muted" style="margin: 0 0 6px">
+      A calculadora só funciona depois de uma <strong>amostra de densidade</strong>. A amostra exige um
+      <strong>tipo de ponto</strong> (ex.: jersey). O mockup com medidas vem do botão depois do cálculo; pode abrir o
+      mockup genérico a qualquer momento no link abaixo.
+    </p>
+    <div id="flowChecklist"></div>
+    <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+      <button type="button" id="btn_quick_jersey">Atalho: criar tipo de ponto «jersey»</button>
+      <a class="btnlink" href="/repo/stoll-vista-simbolos-m1plus.html" target="_blank" rel="noreferrer">Mockup de símbolos (16×12, sem calculadora)</a>
+    </div>
+  </section>
   <section>
     <h2>Cadastro manual — fio</h2>
     <div class="row">
@@ -489,10 +534,43 @@
     return `${origin}/repo/stoll-vista-simbolos-m1plus.html?composeCols=${cols}&composeRows=${rows}&composeStartNeedle=150`;
   }
 
+  function updateFlowChecklist(lib) {
+    const box = document.getElementById("flowChecklist");
+    if (!box) return;
+    const y = lib.yarns.length > 0;
+    const m = lib.machines.length > 0;
+    const s = lib.stitchTypes.length > 0;
+    const d = lib.densitySamples.length > 0;
+    const items = [
+      [y, "Fio cadastrado"],
+      [m, "Máquina / finura cadastrada"],
+      [s, "Tipo de ponto (obrigatório para amostra)"],
+      [d, "Amostra: carreiras e colunas por 10 cm"],
+      [d, "Depois: calculadora → mockup com medidas"],
+    ];
+    box.innerHTML =
+      "<ol>" +
+      items
+        .map(
+          ([ok, text]) =>
+            `<li class="${ok ? "flow-ok" : "flow-warn"}">${ok ? "✓ " : "○ "}${text}</li>`,
+        )
+        .join("") +
+      "</ol>";
+    if (!s) {
+      box.innerHTML +=
+        '<p class="muted" style="margin:10px 0 0">Use o botão <strong>«jersey»</strong> em cima ou preencha «tipo de ponto» mais abaixo.</p>';
+    } else if (!d) {
+      box.innerHTML +=
+        '<p class="muted" style="margin:10px 0 0">Escolha fio, máquina, tipo de ponto e preencha <strong>carreiras/10 cm</strong> e <strong>colunas/10 cm</strong> da prova, depois <strong>Guardar amostra</strong>.</p>';
+    }
+  }
+
   async function refresh() {
     const lib = await api("/api/library");
     fillSelects(lib);
     renderTables(lib);
+    updateFlowChecklist(lib);
     return lib;
   }
 
@@ -548,6 +626,20 @@
           code: document.getElementById("s_code").value,
           name: document.getElementById("s_name").value,
           notes: document.getElementById("s_notes").value,
+        }),
+      });
+      await refresh();
+    });
+
+  document.getElementById("btn_quick_jersey").onclick = () =>
+    safe(async () => {
+      await api("/api/stitch-types", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          code: "jersey",
+          name: "Jersey (direito simples)",
+          notes: "Criado pelo atalho da base de conhecimento",
         }),
       });
       await refresh();
